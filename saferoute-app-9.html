@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeRoute — App Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --violet:#5B3EF0; --violet-deep:#241B4E; --paper:#F5F3FF; --paper-dim:#F1EEFF;
+    --green:#1FAA59; --red:#E63946; --blue:#2F80ED;
+    --ink:#1B1730; --ink-soft:#6B6485; --line:#E7E2FA;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:'Manrope',sans-serif;background:var(--paper);color:var(--ink);
+    min-height:100vh;padding:32px 16px 60px;
+  }
+  h1,h2,h3{font-weight:800;margin:0 0 .4em;letter-spacing:-0.01em;}
+  button{font-family:inherit;cursor:pointer;}
+  a{color:inherit;}
+
+  .page-head{max-width:420px;margin:0 auto 20px;text-align:center;}
+  .page-head .brand{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;font-size:1.2rem;color:var(--violet-deep);}
+  .page-head p{color:var(--ink-soft);font-size:0.92rem;margin-top:6px;}
+
+  .picker{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:460px;margin:0 auto 22px;}
+  .picker button{
+    display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:8px 12px;font-size:0.76rem;font-weight:700;color:var(--ink-soft);min-height:36px;
+  }
+  .picker button .num{
+    width:18px;height:18px;border-radius:50%;background:var(--violet);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:0.65rem;flex:none;
+  }
+  .picker button.active{border-color:var(--violet);color:var(--violet-deep);background:var(--paper-dim);}
+  .phone-stage{display:flex;justify-content:center;}
+  .phone{
+    width:100%;max-width:360px;background:#fff;border-radius:26px;
+    border:6px solid var(--violet-deep);box-shadow:0 20px 40px rgba(36,27,78,0.14);padding:14px;
+  }
+  .notch-row{display:flex;justify-content:space-between;padding:4px 10px 10px;font-size:0.72rem;color:var(--ink-soft);}
+  .screen{min-height:560px;display:flex;flex-direction:column;}
+  .screen[hidden]{display:none;}
+
+  .welcome{align-items:center;text-align:center;padding:18px 14px 8px;flex:1;}
+  .welcome .logo{width:74px;height:74px;border-radius:20px;background:var(--violet);display:flex;align-items:center;justify-content:center;font-size:2.1rem;margin:10px 0 16px;color:#fff;}
+  .welcome h2{font-size:1.7rem;color:var(--violet-deep);}
+  .welcome p.sub{color:var(--ink-soft);font-size:0.95rem;max-width:24ch;margin:0 auto;}
+  .welcome .illustration{width:100%;margin:18px 0;}
+  .welcome .spacer{flex:1;}
+  .welcome .foot{font-size:0.78rem;color:var(--ink-soft);margin-top:14px;}
+
+  .screen-top{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 16px;}
+  .screen-top h3{font-size:1.15rem;margin:0;}
+  .back{background:none;border:none;font-size:1.2rem;color:var(--ink-soft);padding:4px;min-height:32px;}
+  .gear{background:none;border:none;font-size:1.1rem;color:var(--ink-soft);}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:12px;border:2px solid transparent;font-weight:700;font-size:0.95rem;min-height:48px;}
+  .btn-primary{background:var(--violet);color:#fff;}
+  .btn-outline{background:#fff;color:var(--violet-deep);border-color:var(--violet);}
+  .btn-dark{background:var(--violet-deep);color:#fff;}
+  .btn-red{background:var(--red);color:#fff;}
+
+  .search-bar{display:flex;align-items:center;gap:10px;background:var(--paper-dim);border-radius:12px;padding:12px 14px;font-size:0.92rem;color:var(--ink-soft);margin-bottom:16px;}
+  .search-bar input{border:none;background:transparent;outline:none;font-family:inherit;font-size:0.92rem;width:100%;color:var(--ink);}
+
+  .card-row{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--line);border-radius:13px;margin-bottom:10px;background:#fff;}
+  .card-row .icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:#fff;flex:none;}
+  .card-row .meta{flex:1;min-width:0;}
+  .card-row .meta strong{display:block;font-size:0.92rem;}
+  .card-row .meta span{font-size:0.78rem;color:var(--ink-soft);}
+  .card-row.clickable{cursor:pointer;}
+  .card-row.clickable:hover{border-color:var(--violet);}
+
+  .section-label{font-family:'JetBrains Mono',monospace;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin:14px 0 8px;}
+
+  .bottom-nav{display:flex;justify-content:space-around;border-top:1px solid var(--line);padding-top:10px;margin-top:auto;}
+  .bottom-nav button{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.68rem;color:var(--ink-soft);min-height:44px;padding:2px 6px;}
+  .bottom-nav button.active{color:var(--violet);font-weight:700;}
+  .bottom-nav button .ic{font-size:1.05rem;}
+
+  .result-card{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px;}
+  .result-card .top-row{display:flex;justify-content:space-between;align-items:baseline;}
+  .result-card h4{margin:0;font-size:1.02rem;}
+  .result-card .dist{font-size:0.78rem;color:var(--ink-soft);text-align:right;}
+  .result-card .place{font-size:0.82rem;color:var(--ink-soft);margin-bottom:10px;}
+  .fact-row{display:flex;justify-content:space-between;font-size:0.86rem;padding:6px 0;border-top:1px solid var(--line);}
+  .fact-row span.yes{color:var(--green);font-weight:700;}
+
+  .mode-card{display:flex;align-items:center;gap:14px;border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer;background:#fff;}
+  .mode-card.selected{border-color:var(--violet);background:var(--paper-dim);}
+  .mode-card .icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;flex:none;}
+  .mode-card h4{margin:0 0 2px;font-size:1rem;}
+  .mode-card p{margin:0;font-size:0.8rem;color:var(--ink-soft);}
+  .hint{font-size:0.8rem;color:var(--ink-soft);margin-bottom:16px;}
+
+  .mode-pill{display:inline-flex;align-items:center;gap:6px;background:var(--violet-deep);color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;padding:6px 12px;border-radius:999px;margin-bottom:14px;}
+  .instruction-card{background:var(--violet-deep);color:#fff;border-radius:16px;padding:18px;margin-bottom:14px;}
+  .instruction-card p{margin:0;font-size:1.02rem;line-height:1.5;}
+  .nav-meta{display:flex;justify-content:space-between;background:var(--paper-dim);border-radius:12px;padding:12px;margin-bottom:14px;font-size:0.78rem;}
+  .nav-meta div strong{display:block;font-size:0.98rem;}
+
+  .map-box{
+    position:relative;height:150px;border-radius:14px;overflow:hidden;margin-bottom:14px;
+    background:linear-gradient(135deg,#EFE9FF,#F8F6FF);border:1px solid var(--line);
+  }
+  .map-box svg{width:100%;height:100%;display:block;}
+  .map-tag{position:absolute;top:8px;left:10px;font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--ink-soft);background:rgba(255,255,255,0.85);padding:3px 8px;border-radius:6px;}
+
+  .nav-actions{display:flex;gap:10px;margin-bottom:10px;}
+  .nav-actions .btn{flex:1;}
+
+  .emergency-top{background:var(--red);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+  .sos-card{background:var(--red);color:#fff;border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:14px;cursor:pointer;}
+  .sos-card .sos-badge{background:#fff;color:var(--red);font-weight:800;font-size:0.8rem;padding:6px 10px;border-radius:8px;}
+  .sos-card strong{display:block;font-size:0.95rem;}
+  .sos-card span{font-size:0.8rem;opacity:0.9;}
+  .toast{font-size:0.82rem;background:var(--paper-dim);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px;color:var(--ink-soft);min-height:20px;}
+
+  .arrival-check{width:70px;height:70px;border-radius:50%;background:#E6F7EC;color:var(--green);display:flex;align-items:center;justify-content:center;font-size:2.1rem;margin:14px auto 12px;}
+  .arrival-title{text-align:center;color:var(--green);font-size:1.35rem;margin-bottom:20px;}
+
+  .stat-row{display:flex;gap:10px;margin-bottom:16px;}
+  .stat-box{flex:1;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;}
+  .stat-box strong{display:block;font-size:1.3rem;color:var(--violet-deep);}
+  .stat-box span{font-size:0.72rem;color:var(--ink-soft);}
+
+  .avatar-lg{width:64px;height:64px;border-radius:50%;background:var(--violet);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 10px;}
+
+  @media (max-width:420px){ .phone{border-width:6px;} }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="brand">🧭 SafeRoute — App Prototype</div>
+  <p>Every screen and button works. Tap around freely.</p>
+</div>
+
+<div class="picker" id="picker">
+  <button data-screen="welcome"><span class="num">1</span>Welcome</button>
+  <button data-screen="home"><span class="num">2</span>Home</button>
+  <button data-screen="search"><span class="num">3</span>Search</button>
+  <button data-screen="mode"><span class="num">4</span>Mode</button>
+  <button data-screen="nav"><span class="num">5</span>Navigate</button>
+  <button data-screen="emergency"><span class="num">6</span>Emergency</button>
+  <button data-screen="arrival"><span class="num">7</span>Arrived</button>
+</div>
+
+<div class="phone-stage">
+  <div class="phone">
+    <div class="notch-row"><span>9:41</span><span>SafeRoute</span></div>
+
+    <!-- 1. WELCOME -->
+    <div class="screen welcome" id="screen-welcome">
+      <div class="logo">🧭</div>
+      <h2>SafeRoute</h2>
+      <p class="sub">Walking directions made for everyone.</p>
+      <svg class="illustration" viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="95" width="220" height="55" fill="#F1EEFF"/>
+        <rect x="8" y="70" width="18" height="30" fill="#DCD4FF"/>
+        <rect x="30" y="55" width="16" height="45" fill="#E4DEFF"/>
+        <rect x="176" y="60" width="16" height="40" fill="#E4DEFF"/>
+        <rect x="196" y="45" width="18" height="55" fill="#DCD4FF"/>
+        <circle cx="82" cy="72" r="11" fill="#5B3EF0"/>
+        <rect x="70" y="85" width="24" height="38" rx="10" fill="#5B3EF0"/>
+        <rect x="73" y="118" width="7" height="20" rx="3" fill="#241B4E"/>
+        <rect x="86" y="118" width="7" height="20" rx="3" fill="#241B4E"/>
+        <line x1="66" y1="105" x2="58" y2="140" stroke="#B9AEFF" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="58" cy="141" r="3" fill="#B9AEFF"/>
+        <circle cx="140" cy="68" r="11" fill="#2F80ED"/>
+        <rect x="128" y="81" width="24" height="40" rx="10" fill="#2F80ED"/>
+        <rect x="131" y="121" width="7" height="20" rx="3" fill="#1B4E8C"/>
+        <rect x="144" y="121" width="7" height="20" rx="3" fill="#1B4E8C"/>
+        <rect x="150" y="95" width="12" height="18" rx="2" fill="#fff" stroke="#1B4E8C" stroke-width="1.5"/>
+      </svg>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="go('home'); playClick();">Start Navigation</button>
+      <div style="height:10px"></div>
+      <button class="btn btn-outline" onclick="go('settings')">Accessibility Settings</button>
+      <p class="foot">Works with sight, sound, and touch.</p>
+    </div>
+
+    <!-- 2. HOME -->
+    <div class="screen" id="screen-home" hidden>
+      <div class="screen-top">
+        <h3>SafeRoute</h3>
+        <button class="gear" onclick="go('settings')">⚙️</button>
+      </div>
+      <h2 style="font-size:1.25rem;">Where do you want to go?</h2>
+      <div class="search-bar" onclick="go('search')" style="cursor:pointer;">🔍 <span>Tap to search a place</span></div>
+      <div class="section-label">Quick Access</div>
+      <div class="card-row clickable" onclick="go('search'); playClick();">
+        <div class="icon" style="background:var(--blue);">📍</div>
+        <div class="meta"><strong>Current Location</strong><span>See where you are</span></div>
+      </div>
+      <div class="card-row clickable" onclick="go('nearby'); playClick();">
+        <div class="icon" style="background:var(--green);">♿</div>
+        <div class="meta"><strong>Accessible Places</strong><span>Ramps, elevators, restrooms</span></div>
+      </div>
+      <div class="card-row clickable" onclick="go('emergency'); playClick();">
+        <div class="icon" style="background:var(--red);">🆘</div>
+        <div class="meta"><strong>Emergency Help</strong><span>Get help fast</span></div>
+      </div>
+      <div class="bottom-nav">
+        <button class="active"><span class="ic">🏠</span>Home</button>
+        <button onclick="go('history')"><span class="ic">🕓</span>History</button>
+        <button onclick="go('favorites')"><span class="ic">⭐</span>Favorites</button>
+        <button onclick="go('profile')"><span class="ic">👤</span>Profile</button>
+      </div>
+    </div>
+
+    <!-- 3. SEARCH -->
+    <div class="screen" id="screen-search" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('home')">←</button>
+        <h3>Search</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <div class="search-bar"><input id="searchInput" value="Borongan" readonly></div>
+      <div class="result-card">
+        <div class="top-row">
+          <h4 id="resultName">Borongan</h4>
+          <div class="dist">2.4 km<br>8 min</div>
+        </div>
+        <div class="place">Borongan City, Eastern Samar</div>
+        <div class="fact-row"><span>Easy entrance</span><span class="yes">Yes</span></div>
+        <div class="fact-row"><span>Elevator</span><span class="yes">Yes</span></div>
+        <div class="fact-row"><span>Accessible restroom</span><span class="yes">Yes</span></div>
+      </div>
+      <button class="btn btn-primary" onclick="pickDestination('Borongan'); go('mode');">Select This Place</button>
+      <div class="section-label">More Places</div>
+      <div class="card-row clickable" onclick="pickDestination('Dolores'); go('mode');">
+        <div class="icon" style="background:var(--violet);">📍</div>
+        <div class="meta"><strong>Dolores</strong><span>3.1 km away</span></div>
+      </div>
+      <div class="card-row clickable" onclick="pickDestination('Maydolong'); go('mode');">
+        <div class="icon" style="background:var(--violet);">📍</div>
+        <div class="meta"><strong>Maydolong</strong><span>4.0 km away</span></div>
+      </div>
+    </div>
+
+    <!-- 4. CHOOSE MODE -->
+    <div class="screen" id="screen-mode" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('search')">←</button>
+        <h3>Choose How to Navigate</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <p class="hint">Going to <strong id="modeDestLabel">Borongan</strong>. Pick the way that works best for you.</p>
+
+      <div class="mode-card selected" data-mode="visual" onclick="selectMode('visual')">
+        <div class="icon" style="background:var(--violet);">👁</div>
+        <div><h4>Visual</h4><p>See the map and read the directions.</p></div>
+      </div>
+      <div class="mode-card" data-mode="audio" onclick="selectMode('audio')">
+        <div class="icon" style="background:var(--blue);">🔊</div>
+        <div><h4>Audio</h4><p>Hear each direction out loud.</p></div>
+      </div>
+      <div class="mode-card" data-mode="haptic" onclick="selectMode('haptic')">
+        <div class="icon" style="background:var(--red);">📳</div>
+        <div><h4>Haptic</h4><p>Feel a buzz for each turn.</p></div>
+      </div>
+
+      <button class="btn btn-dark" onclick="go('nav'); playChime();">Start Route</button>
+    </div>
+
+    <!-- 5. NAVIGATION -->
+    <div class="screen" id="screen-nav" hidden>
+      <div class="screen-top">
+        <span></span>
+        <span class="mode-pill" id="modePill">🔊 AUDIO MODE</span>
+        <button class="gear" onclick="go('settings')">⚙️</button>
+      </div>
+      <div class="instruction-card">
+        <p id="navInstruction">Turn left in 20 meters and keep going straight.</p>
+      </div>
+      <div class="nav-meta">
+        <div><strong>1.2 km</strong>left</div>
+        <div><strong>15 min</strong>time</div>
+        <div><strong>10:02 AM</strong>arrive</div>
+      </div>
+      <div class="map-box">
+        <span class="map-tag" id="mapDestLabel">→ Borongan</span>
+        <svg viewBox="0 0 300 150" preserveAspectRatio="none">
+          <path d="M20,120 C 80,120 60,60 120,60 S 180,20 260,25" fill="none" stroke="#5B3EF0" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
+          <circle cx="20" cy="120" r="7" fill="#241B4E"/>
+          <circle cx="260" cy="25" r="8" fill="#E63946"/>
+          <circle cx="120" cy="60" r="5" fill="#5B3EF0"><animate attributeName="r" values="5;9;5" dur="1.6s" repeatCount="indefinite"/></circle>
+        </svg>
+      </div>
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="replayBtn" onclick="playInstruction()">🔊 Say It Again</button>
+      </div>
+      <button class="btn btn-primary" onclick="arrive();">I've Arrived</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-outline" onclick="go('home')">✕ End Navigation</button>
+    </div>
+
+    <!-- 6. EMERGENCY -->
+    <div class="screen" id="screen-emergency" hidden>
+      <div class="emergency-top">
+        <button class="back" style="color:#fff;" onclick="go('home')">←</button>
+        <strong>EMERGENCY MODE</strong>
+        <span>⚠️</span>
+      </div>
+      <div class="sos-card" onclick="sendSOS()">
+        <div class="sos-badge">SOS</div>
+        <div><strong>I Need Help</strong><span>Send an alert to your contact</span></div>
+      </div>
+      <div class="card-row clickable" onclick="toast('emgToast','Your location was shared.')">
+        <div class="icon" style="background:var(--blue);">📍</div>
+        <div class="meta"><strong>Share My Location</strong><span>Let others know where you are</span></div>
+      </div>
+      <div class="card-row clickable" onclick="speakSimple('Stay calm. Help is on the way. Stay where you are.')">
+        <div class="icon" style="background:var(--green);">🔊</div>
+        <div class="meta"><strong>Read Instructions</strong><span>Hear safety steps out loud</span></div>
+      </div>
+      <div class="card-row clickable" onclick="hapticGuidance()">
+        <div class="icon" style="background:var(--red);">📳</div>
+        <div class="meta"><strong>Vibration Guidance</strong><span>Feel step-by-step alerts</span></div>
+      </div>
+      <div class="toast" id="emgToast" style="display:none;"></div>
+      <div class="bottom-nav">
+        <button onclick="go('home')"><span class="ic">🏠</span>Home</button>
+        <button class="active"><span class="ic">🆘</span>Emergency</button>
+        <button onclick="go('contacts')"><span class="ic">👥</span>Contacts</button>
+        <button onclick="go('settings')"><span class="ic">⚙️</span>Settings</button>
+      </div>
+    </div>
+
+    <!-- 7. ARRIVAL -->
+    <div class="screen" id="screen-arrival" hidden>
+      <div class="arrival-check">✓</div>
+      <h2 class="arrival-title">You're here!</h2>
+      <div class="result-card">
+        <h4 id="arrivalName">Borongan</h4>
+        <div class="place">You have reached your stop.</div>
+        <div class="fact-row"><span>♿ Easy entrance</span><span class="yes">20 m ahead</span></div>
+      </div>
+      <button class="btn btn-outline" onclick="go('nearby'); playClick();">See Nearby Places</button>
+      <div style="height:10px"></div>
+      <button class="btn btn-primary" onclick="go('home'); playClick();">Done</button>
+    </div>
+
+    <!-- NEARBY -->
+    <div class="screen" id="screen-nearby" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('home')">←</button>
+        <h3>Accessible Places</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <p class="hint">Places nearby with an easy entrance, elevator, or accessible restroom.</p>
+      <div class="card-row clickable" onclick="pickDestination('Borongan'); go('mode');">
+        <div class="icon" style="background:var(--green);">♿</div>
+        <div class="meta"><strong>Borongan</strong><span>2.4 km · ramp, elevator, restroom</span></div>
+      </div>
+      <div class="card-row clickable" onclick="pickDestination('Dolores'); go('mode');">
+        <div class="icon" style="background:var(--green);">♿</div>
+        <div class="meta"><strong>Dolores</strong><span>3.1 km · ramp, elevator</span></div>
+      </div>
+      <div class="card-row clickable" onclick="pickDestination('Maydolong'); go('mode');">
+        <div class="icon" style="background:var(--green);">♿</div>
+        <div class="meta"><strong>Maydolong</strong><span>4.0 km · ramp, restroom</span></div>
+      </div>
+      <div class="card-row clickable" onclick="pickDestination('Taft'); go('mode');">
+        <div class="icon" style="background:var(--green);">♿</div>
+        <div class="meta"><strong>Taft</strong><span>5.2 km · elevator, restroom</span></div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="screen" id="screen-history" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('home')">←</button>
+        <h3>History</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <p class="hint">Places you've already been to.</p>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- FAVORITES -->
+    <div class="screen" id="screen-favorites" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('home')">←</button>
+        <h3>Favorites</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <p class="hint">Places you saved for fast access.</p>
+      <div id="favoritesList"></div>
+      <button class="btn btn-outline" onclick="addFavorite();">+ Add <span id="addFavName">Current Place</span></button>
+      <div class="toast" id="favToast" style="display:none;margin-top:12px;"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('home')">←</button>
+        <h3>Profile</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <div style="text-align:center;margin-bottom:16px;">
+        <div class="avatar-lg">👤</div>
+        <strong>Leomar</strong>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><strong id="statTrips">0</strong><span>Trips</span></div>
+        <div class="stat-box"><strong id="statFavs">2</strong><span>Favorites</span></div>
+      </div>
+      <div class="card-row">
+        <div class="icon" style="background:var(--violet);">🎧</div>
+        <div class="meta"><strong>Preferred Mode</strong><span id="profileMode">Visual</span></div>
+      </div>
+      <div class="card-row">
+        <div class="icon" style="background:var(--ink-soft);">🎨</div>
+        <div class="meta"><strong>Accessibility</strong><span id="profileSummary">Standard contrast, normal text, sounds on</span></div>
+      </div>
+      <button class="btn btn-outline" onclick="go('settings')">Open Settings</button>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="screen" id="screen-contacts" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('emergency')">←</button>
+        <h3>Emergency Contacts</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <p class="hint">SafeRoute sends your SOS alert to these people.</p>
+      <div class="card-row">
+        <div class="icon" style="background:var(--violet);">👩</div>
+        <div class="meta"><strong>Mom</strong><span>Primary contact</span></div>
+        <button class="btn btn-outline" style="width:auto;min-height:36px;padding:8px 12px;" onclick="toast('contactsToast','Calling Mom…'); playClick();">Call</button>
+      </div>
+      <div class="card-row">
+        <div class="icon" style="background:var(--blue);">🧑</div>
+        <div class="meta"><strong>Marco</strong><span>Backup contact</span></div>
+        <button class="btn btn-outline" style="width:auto;min-height:36px;padding:8px 12px;" onclick="toast('contactsToast','Calling Marco…'); playClick();">Call</button>
+      </div>
+      <button class="btn btn-outline" onclick="toast('contactsToast','Add a new contact from your phone book.')">+ Add Contact</button>
+      <div class="toast" id="contactsToast" style="display:none;margin-top:12px;"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen" id="screen-settings" hidden>
+      <div class="screen-top">
+        <button class="back" onclick="go('home')">←</button>
+        <h3>Settings</h3>
+        <span style="width:24px;"></span>
+      </div>
+      <div class="card-row">
+        <div class="icon" style="background:var(--violet);">🎨</div>
+        <div class="meta"><strong>High Contrast</strong><span id="settingsHCLabel">Off</span></div>
+        <button class="btn btn-outline" style="width:auto;min-height:36px;padding:8px 12px;" onclick="toggleHC();">Toggle</button>
+      </div>
+      <div class="card-row">
+        <div class="icon" style="background:var(--blue);">🔠</div>
+        <div class="meta"><strong>Text Size</strong><span id="settingsTextLabel">Normal</span></div>
+        <button class="btn btn-outline" style="width:auto;min-height:36px;padding:8px 12px;" onclick="toggleTextSize();">Toggle</button>
+      </div>
+      <div class="card-row">
+        <div class="icon" style="background:var(--green);">🔊</div>
+        <div class="meta"><strong>Sounds</strong><span id="settingsSoundLabel">On</span></div>
+        <button class="btn btn-outline" style="width:auto;min-height:36px;padding:8px 12px;" onclick="toggleSound();">Toggle</button>
+      </div>
+      <p class="hint">These settings apply everywhere in SafeRoute, right away.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ---------- state ---------- */
+  const screens = ['welcome','home','search','mode','nav','emergency','arrival','nearby','history','favorites','profile','contacts','settings'];
+  let selectedMode = 'visual';
+  let currentDestination = 'Borongan';
+  let tripsTaken = 0;
+  let favorites = ['Home', 'Work'];
+  let history = [
+    {name:'Borongan', when:'Yesterday, 2:30 PM'},
+    {name:'Dolores', when:'3 days ago'},
+    {name:'Maydolong', when:'1 week ago'}
+  ];
+  let hcOn = false, textBig = false, soundOn = true;
+
+  /* ---------- navigation between screens ---------- */
+  function go(name){
+    screens.forEach(s=>{
+      document.getElementById('screen-'+s).hidden = (s !== name);
+    });
+    document.querySelectorAll('.picker button').forEach(b=>{
+      b.classList.toggle('active', b.dataset.screen === name);
+    });
+    if (name === 'nav') renderModeScreen();
+    if (name === 'profile') renderProfile();
+    if (name === 'history') renderHistory();
+    if (name === 'favorites') renderFavorites();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('.picker button').forEach(b=>{
+    b.addEventListener('click', ()=>go(b.dataset.screen));
+  });
+
+  function pickDestination(name){
+    currentDestination = name;
+    playClick();
+  }
+
+  /* ---------- settings ---------- */
+  function toggleHC(){
+    hcOn = !hcOn;
+    document.documentElement.style.filter = hcOn ? 'contrast(1.15) saturate(1.1)' : '';
+    const el = document.getElementById('settingsHCLabel');
+    if (el) el.textContent = hcOn ? 'On' : 'Off';
+  }
+  function toggleTextSize(){
+    textBig = !textBig;
+    document.body.style.fontSize = textBig ? '19px' : '';
+    const el = document.getElementById('settingsTextLabel');
+    if (el) el.textContent = textBig ? 'Large' : 'Normal';
+  }
+  function toggleSound(){
+    soundOn = !soundOn;
+    const el = document.getElementById('settingsSoundLabel');
+    if (el) el.textContent = soundOn ? 'On' : 'Off';
+    if (!soundOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+
+  /* ---------- profile ---------- */
+  function renderProfile(){
+    document.getElementById('profileMode').textContent =
+      selectedMode.charAt(0).toUpperCase() + selectedMode.slice(1);
+    document.getElementById('profileSummary').textContent =
+      (hcOn ? 'High contrast' : 'Standard contrast') + ', ' +
+      (textBig ? 'large text' : 'normal text') + ', ' +
+      'sounds ' + (soundOn ? 'on' : 'off');
+    document.getElementById('statTrips').textContent = tripsTaken;
+    document.getElementById('statFavs').textContent = favorites.length;
+  }
+
+  /* ---------- history ---------- */
+  function renderHistory(){
+    const list = document.getElementById('historyList');
+    list.innerHTML = history.map(h => `
+      <div class="card-row clickable" onclick="pickDestination('${h.name}'); go('mode');">
+        <div class="icon" style="background:var(--violet);">📍</div>
+        <div class="meta"><strong>${h.name}</strong><span>${h.when}</span></div>
+      </div>`).join('');
+  }
+
+  /* ---------- favorites ---------- */
+  function renderFavorites(){
+    const list = document.getElementById('favoritesList');
+    const icons = {Home:'🏠', Work:'💼'};
+    list.innerHTML = favorites.map(f => `
+      <div class="card-row clickable" onclick="pickDestination('${f}'); go('mode');">
+        <div class="icon" style="background:${icons[f] ? 'var(--green)' : 'var(--violet)'};">${icons[f] || '⭐'}</div>
+        <div class="meta"><strong>${f}</strong><span>Saved place</span></div>
+      </div>`).join('');
+    document.getElementById('addFavName').textContent = currentDestination;
+  }
+  function addFavorite(){
+    if (!favorites.includes(currentDestination)){
+      favorites.push(currentDestination);
+      toast('favToast', 'Added ' + currentDestination + ' to Favorites.');
+    } else {
+      toast('favToast', currentDestination + ' is already a Favorite.');
+    }
+    renderFavorites();
+    playClick();
+  }
+
+  /* ---------- mode selection ---------- */
+  const modeCopy = {
+    visual: {pill:'👁 VISUAL MODE', text:'Turn left in 20 meters. Keep going straight after.', speak:'Turn left in 20 meters, then keep going straight.'},
+    audio: {pill:'🔊 AUDIO MODE', text:'Turn left in 20 meters and keep going straight.', speak:'Turn left in 20 meters, then keep going straight.'},
+    haptic: {pill:'📳 HAPTIC MODE', text:'Two short buzzes mean turn left. Feel it now, in 20 meters.', speak:'Two short buzzes means turn left, in 20 meters.', vibrate:[120,80,120]}
+  };
+  function selectMode(mode){
+    selectedMode = mode;
+    document.querySelectorAll('.mode-card').forEach(c=>{
+      c.classList.toggle('selected', c.dataset.mode === mode);
+    });
+    playClick();
+  }
+  function renderModeScreen(){
+    const m = modeCopy[selectedMode];
+    document.getElementById('modePill').textContent = m.pill;
+    document.getElementById('navInstruction').textContent = m.text;
+    document.getElementById('mapDestLabel').textContent = '→ ' + currentDestination;
+    document.getElementById('modeDestLabel').textContent = currentDestination;
+  }
+  function playInstruction(){
+    const m = modeCopy[selectedMode];
+    if (selectedMode === 'audio') playChime();
+    if (selectedMode === 'haptic') playHapticTone();
+    if (selectedMode === 'visual') playClick();
+    if (m.vibrate && navigator.vibrate) navigator.vibrate(m.vibrate);
+    speakSimple(m.speak);
+  }
+  function arrive(){
+    tripsTaken += 1;
+    document.getElementById('arrivalName').textContent = currentDestination;
+    go('arrival');
+    playSuccess();
+  }
+
+  /* ---------- emergency actions ---------- */
+  function sendSOS(){
+    playAlert();
+    if (navigator.vibrate) navigator.vibrate([200,100,200,100,200]);
+    toast('emgToast','Alert sent. Your contact was told where you are.');
+  }
+  function hapticGuidance(){
+    playHapticTone();
+    if (navigator.vibrate) navigator.vibrate([150,100,150,100,150]);
+    toast('emgToast','Buzzing to guide you to the nearest safe exit.');
+  }
+  function toast(id, msg){
+    const el = document.getElementById(id);
+    el.style.display = 'block';
+    el.textContent = msg;
+  }
+
+  /* ---------- speech ---------- */
+  function speakSimple(text){
+    if (!soundOn) return;
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95;
+    window.speechSynthesis.speak(u);
+  }
+
+  /* ---------- generated sound effects (no audio files) ---------- */
+  let actx;
+  function getCtx(){
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function tone(freq, startAt, duration, opts){
+    if (!soundOn) return;
+    opts = opts || {};
+    const type = opts.type || 'sine';
+    const peak = opts.peak || 0.16;
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(peak, startAt + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(startAt);
+    osc.stop(startAt + duration + 0.02);
+  }
+  function playClick(){ tone(720, getCtx().currentTime, 0.06, {peak:0.12}); }
+  function playChime(){
+    const t = getCtx().currentTime;
+    tone(880, t, 0.16, {peak:0.15});
+    tone(1318.5, t + 0.14, 0.2, {peak:0.15});
+  }
+  function playHapticTone(){
+    let t = getCtx().currentTime;
+    tone(150, t, 0.12, {type:'square', peak:0.1});
+    tone(150, t + 0.2, 0.12, {type:'square', peak:0.1});
+  }
+  function playSuccess(){
+    const t = getCtx().currentTime;
+    tone(660, t, 0.14, {peak:0.14});
+    tone(880, t + 0.13, 0.18, {peak:0.14});
+    tone(1108, t + 0.28, 0.22, {peak:0.14});
+  }
+  function playAlert(){
+    let t = getCtx().currentTime;
+    for (let i=0;i<3;i++){
+      tone(880, t, 0.16, {type:'sawtooth', peak:0.12});
+      tone(660, t+0.16, 0.16, {type:'sawtooth', peak:0.12});
+      t += 0.36;
+    }
+  }
+
+  /* ---------- boot ---------- */
+  go('welcome');
+</script>
+
+</body>
+</html>
